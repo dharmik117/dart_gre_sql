@@ -22,6 +22,20 @@ class TodosHelper {
     }
   }
 
+  Future<List<dynamic>> getTodoById({required int userId}) async {
+    final connection = await _db;
+
+    final result = await connection.execute(
+        Sql.named('''Select * from todos where user_id = @user_id'''),
+        parameters: {'user_id': userId});
+
+    if (result.isEmpty) {
+      return [];
+    } else {
+      return result.map((element) => element.toColumnMap()).toList();
+    }
+  }
+
   Future<Map<String, dynamic>> addTodo(
       {required String text, required int id}) async {
     final connection = await _db;
