@@ -127,4 +127,26 @@ class TodosHelper {
       return {'error': e.toString()};
     }
   }
+
+  Future<Map<String, dynamic>> deleteTable() async {
+    final connection = await _db;
+
+    try {
+      final result = await connection.execute(
+        Sql.named(
+          'DROP TABLE IF EXISTS todos',
+        ),
+      );
+
+      if (result.isEmpty) {
+        return {'error': 'Failed delete table'};
+      }
+
+      return result.first.toColumnMap();
+    } catch (e, s) {
+      print('❌ Error delete table: $e');
+      print(s);
+      return {'error': e.toString()};
+    }
+  }
 }
