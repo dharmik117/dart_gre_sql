@@ -128,13 +128,13 @@ class TodosHelper {
     }
   }
 
-  Future<Map<String, dynamic>> deleteTable() async {
+  Future<Map<String, dynamic>> deleteTable({required String tableName}) async {
     final connection = await _db;
 
     try {
       final result = await connection.execute(
         Sql.named(
-          'DROP TABLE IF EXISTS todos',
+          'DROP TABLE IF EXISTS $tableName',
         ),
       );
 

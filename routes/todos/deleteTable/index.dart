@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dartgre_sql/todos_helper.dart';
 
@@ -6,12 +8,29 @@ Future<Response> onRequest(RequestContext context) async {
     try {
       final db = TodosHelper();
 
-      await db.deleteTable();
+      // Read JSON body
+      final body = await context.request.body();
+      final data = jsonDecode(body) as Map<String, dynamic>;
+
+      // Get table name from the request
+      final tableName = data['table_name'] as String?;
+
+      if (tableName == null || tableName.isEmpty) {
+        return Response.json(
+          body: {'error': 'table_name is required'},
+          statusCode: 400,
+        );
+      }
+
+      // Call deleteTable method
+      await db.deleteTable(tableName: tableName);
 
       return Response.json(
-          body: {'message': 'table deleted '}, statusCode: 200);
+        body: {'message': 'Table "$tableName" deleted successfully'},
+        statusCode: 200,
+      );
     } catch (e, s) {
-      print('❌ Error fetching todos: $e');
+      print('❌ Error deleting table: $e');
       print(s);
       return Response.json(
         body: {'error': 'Internal Server Error', 'details': e.toString()},
