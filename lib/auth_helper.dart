@@ -30,8 +30,9 @@ class AuthHelper {
     } else {
       final user = result.first.toColumnMap();
 
+
       if (user['user_password'] == hashedPassword) {
-        return {'message': 'Login successful'};
+        return {'message': 'Login successful', 'id': user['user_id']};
       } else {
         return {'message': 'Invalid password'};
       }

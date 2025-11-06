@@ -51,6 +51,14 @@ class DatabaseHelper {
   );
 ''');
 
+    await _connection.execute('''
+    CREATE TABLE IF NOT EXISTS auth (
+  user_id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  email TEXT NOT NULL,
+  user_password TEXT NOT NULL
+);
+    ''');
+
     print('✅ PostgreSQL connected (global)');
   }
 }
