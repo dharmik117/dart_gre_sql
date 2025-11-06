@@ -57,7 +57,6 @@ class AuthHelper {
     }
 
     if (password.length < 6) {
-      // Example length check
       return {'message': 'Password must be at least 6 characters'};
     }
 
@@ -69,10 +68,10 @@ class AuthHelper {
               '''
       SELECT email FROM auth WHERE email = @email
     '''),
-          parameters: {'email': email});
+          parameters: {'email': email},);
 
       if (emailCheck.isNotEmpty) {
-        return {'message': 'User already exists'};
+        return {'message': 'User already exists', 'is_success': false};
       }
 
       final result = await connection.execute(

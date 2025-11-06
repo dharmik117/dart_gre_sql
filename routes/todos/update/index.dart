@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dartgre_sql/todos_helper.dart';
 
@@ -14,7 +15,7 @@ Future<Response> onRequest(RequestContext context) async {
   try {
     final db = TodosHelper();
 
-    // Read request body
+    // Read and decode request body
     final body = await context.request.body();
     if (body.isEmpty) {
       return Response.json(
@@ -48,13 +49,16 @@ Future<Response> onRequest(RequestContext context) async {
     final idValue = data['id'];
     final textValue = data['text'];
     final isLikedValue = data['is_liked'];
+    final color = data['color']; // It's optional
 
-    if (idValue is! int ||
-        textValue is! String ||
-        isLikedValue is! bool) {
+    // Verify types
+    if (idValue is! int || textValue is! String || isLikedValue is! bool) {
       return Response.json(
         statusCode: 400,
-        body: {'error': 'Invalid data types: expected {id: int, text: String, is_liked: bool}'},
+        body: {
+          'error':
+          'Invalid data types: expected {id: int, text: String, is_liked: bool}'
+        },
       );
     }
 
@@ -63,6 +67,7 @@ Future<Response> onRequest(RequestContext context) async {
       id: idValue,
       text: textValue,
       isLiked: isLikedValue,
+      color: color is String ? color : null, // Ensure it's a string or null
     );
 
     if (result.isNotEmpty) {
@@ -80,6 +85,7 @@ Future<Response> onRequest(RequestContext context) async {
       );
     }
   } catch (e, stack) {
+    // Log error with stack trace for debugging
     print('Error in update_todo: $e\n$stack');
     return Response.json(
       statusCode: 500,

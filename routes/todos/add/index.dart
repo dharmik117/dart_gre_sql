@@ -1,9 +1,9 @@
 import 'dart:convert';
+
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dartgre_sql/todos_helper.dart';
 
 Future<Response> onRequest(RequestContext context) async {
-  // ✅ Allow only POST
   if (context.request.method != HttpMethod.post) {
     return Response.json(
       statusCode: 405,
@@ -12,13 +12,12 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   try {
-    // ✅ Parse request body safely
     final body = await context.request.body();
 
     if (body.isEmpty) {
       return Response.json(
         statusCode: 400,
-        body: {'error': 'Request body cannot be empty.'},
+        body: {'error': 'Request body cannot be empty.', 'is_success': false},
       );
     }
 
@@ -28,38 +27,45 @@ Future<Response> onRequest(RequestContext context) async {
     } catch (e) {
       return Response.json(
         statusCode: 400,
-        body: {'error': 'Invalid JSON format.'},
+        body: {'error': 'Invalid JSON format.', 'is_success': false},
       );
     }
 
-    // ✅ Validate required fields
     final text = data['text'];
     final userId = data['user_id'];
+    final color = data['color'] ?? '#ffffff';
 
     if (text == null || text is! String || text.trim().isEmpty) {
       return Response.json(
         statusCode: 400,
-        body: {'error': 'Missing or invalid "text" field.'},
+        body: {
+          'error': 'Missing or invalid "text" field.',
+          'is_success': false
+        },
       );
     }
 
     if (userId == null || userId is! int) {
       return Response.json(
         statusCode: 400,
-        body: {'error': 'Missing or invalid "user_id" field.'},
+        body: {
+          'error': 'Missing or invalid "user_id" field.',
+          'is_success': false
+        },
       );
     }
 
-    // ✅ Interact with database securely
     final db = TodosHelper();
 
     try {
-      final insert = await db.addTodo(text: text.trim(), id: userId);
+      final insert = await db.addTodo(
+          text: text.trim(), id: userId, color: color.toString());
       return Response.json(
         statusCode: 201,
         body: {
           'message': 'Todo created successfully.',
           'data': insert,
+          'is_success': true
         },
       );
     } catch (dbError) {
@@ -69,14 +75,18 @@ Future<Response> onRequest(RequestContext context) async {
         body: {
           'error': 'Failed to create todo.',
           'details': dbError.toString(),
+          'is_success': false
         },
       );
     }
   } catch (e) {
-    // ✅ Catch any unexpected server-level errors
     return Response.json(
       statusCode: 500,
-      body: {'error': 'Internal server error.', 'details': e.toString()},
+      body: {
+        'error': 'Internal server error.',
+        'details': e.toString(),
+        'is_success': false
+      },
     );
   }
 }

@@ -47,7 +47,8 @@ class DatabaseHelper {
     id INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     text TEXT NOT NULL,
     user_id INT,
-    is_liked BOOLEAN DEFAULT FALSE
+    is_liked BOOLEAN DEFAULT FALSE,
+    color TEXT DEFAULT '#FFFFFF'
   );
 ''');
 

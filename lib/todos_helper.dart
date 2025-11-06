@@ -37,15 +37,15 @@ class TodosHelper {
   }
 
   Future<Map<String, dynamic>> addTodo(
-      {required String text, required int id}) async {
+      {required String text, required int id, String? color}) async {
     final connection = await _db;
 
     try {
       final result = await connection.execute(
         Sql.named(
-          'INSERT INTO todos (text,user_id) VALUES (@text,@user_id) RETURNING *',
+          'INSERT INTO todos (text,user_id,color) VALUES (@text,@user_id,@color) RETURNING *',
         ),
-        parameters: {'text': text, 'user_id': id},
+        parameters: {'text': text, 'user_id': id, 'color': color},
       );
 
       if (result.isEmpty) {
@@ -60,27 +60,43 @@ class TodosHelper {
     }
   }
 
-  Future<Map<String, dynamic>> updateTodo(
-      {required String text, required int id, bool? isLiked}) async {
+  Future<Map<String, dynamic>> updateTodo({
+    required String text,
+    required int id,
+    bool? isLiked,
+    String? color,
+  }) async {
     final connection = await _db;
 
     try {
       final result = await connection.execute(
         Sql.named(
-          'Update todos Set text = @text, is_liked = @is_liked where id = @id  RETURNING *',
+          '''
+          Update todos Set
+            text = @text,
+            is_liked = @is_liked,
+            color = @color
+            where id = @id
+            RETURNING *
+          ''',
         ),
-        parameters: {'text': text, 'id': id, 'is_liked': isLiked},
+        parameters: {
+          'text': text,
+          'id': id,
+          'is_liked': isLiked,
+          'color': color
+        },
       );
 
       if (result.isEmpty) {
-        return {'error': 'Failed to update todo'};
+        return {'error': 'Failed to update todo', 'is_success': false};
       }
 
       return result.first.toColumnMap();
     } catch (e, s) {
       print('❌ Error updateing todo: $e');
       print(s);
-      return {'error': e.toString()};
+      return {'error': e.toString(), 'is_success': false};
     }
   }
 
@@ -94,13 +110,16 @@ class TodosHelper {
 
     try {
       if (result.isEmpty) {
-        return {'error': 'Todo not found'};
+        return {'error': 'Todo not found', 'is_success': false};
       } else {
-        return result.first.toColumnMap();
+        return {
+          'message': 'Todo deleted successfully',
+          'is_success': true,
+        };
       }
     } catch (e, s) {
       print(e.toString());
-      return {'error': e.toString()};
+      return {'error': e.toString(), 'is_success': false};
     }
   }
 
