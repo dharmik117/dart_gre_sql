@@ -37,15 +37,27 @@ class TodosHelper {
   }
 
   Future<Map<String, dynamic>> addTodo(
-      {required String text, required int id, String? color}) async {
+      {required String text,
+      required int id,
+      String? color,
+      String? image}) async {
     final connection = await _db;
 
     try {
       final result = await connection.execute(
         Sql.named(
-          'INSERT INTO todos (text,user_id,color) VALUES (@text,@user_id,@color) RETURNING *',
+          '''
+           INSERT INTO todos
+           (text,user_id,color,image)
+           VALUES (@text,@user_id,@color,@image)
+           RETURNING *''',
         ),
-        parameters: {'text': text, 'user_id': id, 'color': color},
+        parameters: {
+          'text': text,
+          'user_id': id,
+          'color': color,
+          'image': image
+        },
       );
 
       if (result.isEmpty) {

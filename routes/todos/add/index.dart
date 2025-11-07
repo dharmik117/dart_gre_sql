@@ -1,5 +1,5 @@
+import 'dart:io';
 import 'dart:convert';
-
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dartgre_sql/todos_helper.dart';
 
@@ -12,80 +12,68 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   try {
-    final body = await context.request.body();
+    // ✅ Parse multipart form-data
+    final form = await context.request.formData();
 
-    if (body.isEmpty) {
+    final text = form.fields['text'];
+    final userId = int.tryParse(form.fields['user_id'] ?? '');
+    final color = form.fields['color'] ?? '#ffffff';
+    final image = form.files['image'];
+
+    // ✅ Validations
+    if (text == null || text.trim().isEmpty) {
       return Response.json(
         statusCode: 400,
-        body: {'error': 'Request body cannot be empty.', 'is_success': false},
+        body: {'error': 'Missing or invalid text', 'is_success': false},
       );
     }
 
-    late Map<String, dynamic> data;
-    try {
-      data = jsonDecode(body) as Map<String, dynamic>;
-    } catch (e) {
+    if (userId == null) {
       return Response.json(
         statusCode: 400,
-        body: {'error': 'Invalid JSON format.', 'is_success': false},
+        body: {'error': 'Missing or invalid user_id', 'is_success': false},
       );
     }
 
-    final text = data['text'];
-    final userId = data['user_id'];
-    final color = data['color'] ?? '#ffffff';
+    String? imageUrl;
 
-    if (text == null || text is! String || text.trim().isEmpty) {
-      return Response.json(
-        statusCode: 400,
-        body: {
-          'error': 'Missing or invalid "text" field.',
-          'is_success': false
-        },
-      );
-    }
+    // ✅ Save image if uploaded
+    if (image != null) {
+      final uploadsDir = Directory('uploads');
+      if (!uploadsDir.existsSync()) uploadsDir.createSync();
 
-    if (userId == null || userId is! int) {
-      return Response.json(
-        statusCode: 400,
-        body: {
-          'error': 'Missing or invalid "user_id" field.',
-          'is_success': false
-        },
-      );
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${image.name}';
+
+      final savedFile = File('uploads/$fileName');
+      await savedFile.writeAsBytes(await image.readAsBytes());
+
+      imageUrl = 'http://localhost:8080/uploads/$fileName';
     }
 
     final db = TodosHelper();
+    final result = await db.addTodo(
+      text: text.trim(),
+      id: userId,
+      color: color,
+      image: imageUrl ?? '',
+    );
 
-    try {
-      final insert = await db.addTodo(
-          text: text.trim(), id: userId, color: color.toString());
-      return Response.json(
-        statusCode: 201,
-        body: {
-          'message': 'Todo created successfully.',
-          'data': insert,
-          'is_success': true
-        },
-      );
-    } catch (dbError) {
-      // Don’t expose internal DB errors
-      return Response.json(
-        statusCode: 500,
-        body: {
-          'error': 'Failed to create todo.',
-          'details': dbError.toString(),
-          'is_success': false
-        },
-      );
-    }
+    return Response.json(
+      statusCode: 201,
+      body: {
+        'message': 'Todo created successfully.',
+        'data': result,
+        'is_success': true,
+      },
+    );
   } catch (e) {
     return Response.json(
       statusCode: 500,
       body: {
-        'error': 'Internal server error.',
+        'error': 'Internal server error',
         'details': e.toString(),
-        'is_success': false
+        'is_success': false,
       },
     );
   }

@@ -20,25 +20,25 @@ class DatabaseHelper {
   Future<void> init() async {
     if (_isInitialized) return;
 
-    _connection = await Connection.open(
-      Endpoint(
-        host: 'caboose.proxy.rlwy.net',
-        port: 33798,
-        database: 'railway',
-        username: 'postgres',
-        password: 'FIgNRBgScLQRHJoLDtGMTpSSkcOnpJKI',
-      ),
-      settings: const ConnectionSettings(sslMode: SslMode.disable),
-    );
     // _connection = await Connection.open(
     //   Endpoint(
-    //     host: 'localhost',
-    //     database: 'todos',
+    //     host: 'caboose.proxy.rlwy.net',
+    //     port: 33798,
+    //     database: 'railway',
     //     username: 'postgres',
-    //     password: 'Hack@berry17',
+    //     password: 'FIgNRBgScLQRHJoLDtGMTpSSkcOnpJKI',
     //   ),
     //   settings: const ConnectionSettings(sslMode: SslMode.disable),
     // );
+    _connection = await Connection.open(
+      Endpoint(
+        host: 'localhost',
+        database: 'todos',
+        username: 'postgres',
+        password: 'Hack@berry17',
+      ),
+      settings: const ConnectionSettings(sslMode: SslMode.disable),
+    );
 
     _isInitialized = true;
 
@@ -48,7 +48,8 @@ class DatabaseHelper {
     text TEXT NOT NULL,
     user_id INT,
     is_liked BOOLEAN DEFAULT FALSE,
-    color TEXT DEFAULT '#FFFFFF'
+    color TEXT DEFAULT '#FFFFFF',
+    image TEXT DEFAULT ''
   );
 ''');
 
