@@ -48,8 +48,7 @@ Future<Response> onRequest(RequestContext context) async {
       final savedFile = File('uploads/$fileName');
       await savedFile.writeAsBytes(await image.readAsBytes());
 
-      imageUrl = 'http://localhost:8080/uploads/$fileName';
-    }
+      imageUrl = 'https://dartgresql-production.up.railway.app/uploads/$fileName';    }
 
     final db = TodosHelper();
     final result = await db.addTodo(
